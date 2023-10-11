@@ -1,0 +1,214 @@
+/*
+h2 {
+    margin-top: 5ex !important;
+    margin-left: -0.5ex !important;
+}
+h3 {
+    margin-top: 4ex !important;
+    margin-left: -0.5ex !important;
+}
+h4 {
+    margin-top: 3ex !important;
+    margin-left: -0.5ex !important;
+    background: #ffffff !important;
+    border-bottom: 8px solid #D8DEE3;
+}
+
+blockquote {
+    padding: 0.2ex;
+    background: #f9f9f9;
+}
+
+div.discussion {
+    padding: 1ex 2ex 1ex 2ex;
+    background: #eedddd !important;
+    margin-top: 2ex;
+    margin-bottom: 2ex;
+    margin-left: 4ex;
+}
+*/
+
+
+div.attention {
+    padding: 1ex 2ex 1ex 2ex;
+    background: #ffcccc !important;
+    margin-top: 2ex;
+    margin-bottom: 2ex;
+    /* margin-left: 2ex; */
+}
+
+div.exercise {
+    border: 2px solid #CCF;
+    border-radius: 3px;
+    padding: 1ex 2ex 1ex 2ex;
+    margin-top: 2ex;
+    margin-bottom: 2ex;
+}
+
+/*
+.qanda .admonition-title {
+    display: none;
+}
+div.qanda {
+    padding: 1ex 2ex 1ex 2ex;
+    background: #ddeedd !important;
+    margin-top: 3ex;
+    margin-bottom: 3ex;
+    margin-left: 4ex;
+}
+
+div.qanda p {
+}
+
+.qanda dt {
+    float: left;
+    clear: left;
+    width: 2em;
+    margin-top: -0.2ex;
+}
+*/
+
+/*
+code {
+   padding: 0.5ex 0.5ex !important; 
+   background-color: rgba(0, 0, 0, 0) !important;
+}
+
+code.file {
+   font-family: system-ui;
+   padding: 0.2ex 0.2ex !important;
+}
+
+code.samp {
+   padding: 0.3ex 0.8ex 0.3ex 0.8ex !important;
+   margin: 0ex 0.3ex !important;
+   background-color: #f2f2f2 !important;
+}
+*/
+
+span.menuselection {
+    font-family: system-ui;
+}
+
+/* https://jameshunt.us/writings/styling-kbd-with-css.html */
+kbd {
+  display: inline-block;
+  margin: 0em 0.3em 0em 0.3em;
+  padding: .1em .6em;
+  font-family: Arial,"Helvetica Neue",Helvetica,sans-serif;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #242729;
+  text-shadow: 0 1px 0 #FFF;
+  background-color: #FFF;
+  border: 1px solid #adb3b9;
+  border-radius: 3px;
+  box-shadow: 0 1px 0 rgba(12,13,14,0.2),0 0 0 2px #FFF inset;
+  white-space: nowrap;
+}
+
+/*
+div.lang_switch {
+  margin-left: 3ex;
+  margin-bottom: -2ex;
+}
+*/
+
+/* https://www.notitle-weblog.com/entry/fukidashi */
+
+/*
+.document .l-fuki,
+.document .r-fuki {
+  position: relative;
+  width: calc(100% - 36px);
+  box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  padding: 10px;
+  box-shadow: 0 3px 8px -2px rgba(0,0,0,.16);
+  background-color: #fff;
+  z-index: 1;
+  box-sizing: border-box;
+}
+.document .l-fuki {
+  margin: 10px auto 12px 0;
+}
+.document .r-fuki {
+  margin: 10px 0 12px auto;
+}
+.document .l-fuki::before,
+.document .r-fuki::before {
+  position: absolute;
+  content: "";
+  top: 16px;
+  width: 10px;
+  height: 10px;
+  border-right: 2px solid #ddd;
+  border-bottom: 2px solid #ddd;
+  background-color: #fff;
+  z-index: 2;
+}
+.document .l-fuki::before {
+  right: -7px;
+  transform: rotate(-45deg);
+  -webkit-transform: rotate(-45deg);
+}
+.document .r-fuki::before {
+  left: -7px;
+  transform: rotate(135deg);
+  -webkit-transform: rotate(135deg);
+}
+.document .l-fuki::after,
+.document .r-fuki::after {
+  position: absolute;
+  content: "";
+  width: 36px;
+  height: 36px;
+  top: 10px;
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+}
+.document .l-fuki::after {
+  right: -36px;
+}
+.document .r-fuki::after {
+  left: -36px;
+}
+@media screen and (min-width: 478px) {
+  .document .l-fuki::after,
+  .document .r-fuki::after {
+    width: 36px;
+    height: 36px;
+  }
+  .document .l-fuki,
+  .document .r-fuki {
+    width: calc(100% - 52px);
+  }
+  .document .l-fuki::after {
+    right: -52px;
+  }
+  .document .r-fuki::after {
+    left: -52px;
+  }
+}
+.q-speaker::after {background-image:url("illustimage_5250_question_cropped.png");}
+*/
+
+/* https://stackoverflow.com/questions/2454577/sphinx-restructuredtext-show-hide-code-snippets */
+
+/*
+.toggle .header {
+    display: block;
+    clear: both;
+}
+
+.toggle .header:after {
+    content: "▶ Continue Reading";
+    color: #d00;
+}
+
+.toggle .header.open:after {
+    content: "▼ Collapse";
+    color: #d00;
+}
+*/

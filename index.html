@@ -1,0 +1,700 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Machine Learning for Robot Control (Lab Experiment II) &#8212; Machine Learning for Robot Control (Lab Experiment II)</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css" />
+    <link rel="stylesheet" type="text/css" href="_static/pygments_doscon.css" />
+    <link rel="stylesheet" type="text/css" href="_static/pygments_ipython.css" />
+    <link rel="stylesheet" type="text/css" href="_static/custom_style.css" />
+    
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/js/gifffer.min.js"></script>
+    <script src="_static/js/init.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="nav-item nav-item-0"><a href="#">Machine Learning for Robot Control (Lab Experiment II)</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Machine Learning for Robot Control (Lab Experiment II)</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="machine-learning-for-robot-control-lab-experiment-ii">
+<h1>Machine Learning for Robot Control (Lab Experiment II)<a class="headerlink" href="#machine-learning-for-robot-control-lab-experiment-ii" title="Permalink to this heading">¶</a></h1>
+<p>last modified: 20231011</p>
+<p>This Notebook is originally written by Akihiko Yamaguchi (&#64;akihikoy).</p>
+<div class="section" id="abstract">
+<h2>Abstract<a class="headerlink" href="#abstract" title="Permalink to this heading">¶</a></h2>
+<p>In these experiments, we explore AI (artificial intelligence)
+technologies for robot control.  Especially we use machine learning
+and optimization.  The task is a throwing motion of a single-finger
+robot where we control the ball behavior thrown by the robot.  When
+the ball behavior is difficult to analyze, using AI tools is an
+approach to achieve the task.  The goal of these experiments is
+learning the use of AI technologies under the context of robot
+control.</p>
+<div class="admonition attention">
+<p class="first admonition-title">Attention</p>
+<p class="last">Bring a laptop PC to the class for these experiments.  A web
+browser should be installed (Google Chrome is recommended).</p>
+</div>
+</div>
+<div class="section" id="robot-system-overview">
+<h2>1. Robot System Overview<a class="headerlink" href="#robot-system-overview" title="Permalink to this heading">¶</a></h2>
+<div class="section" id="physical-robot">
+<h3>1.1. Physical Robot<a class="headerlink" href="#physical-robot" title="Permalink to this heading">¶</a></h3>
+<p>The robot we use is a single-finger robot with 1 degree-of-freedom.
+It consists of 3D printed frames and an actuator, Dynamixel servo motor.
+The Dynamixel servo is connected to a mini PC (Raspberry Pi) with USB, which is connected to a local network.
+All programs are installed on the mini PC including the Dynamixel controller and AI tools.</p>
+<p>By running a Python program in the mini PC, we can control the
+robot. Optionally, students may connect their PCs to the network over
+WiFi, and log on to the mini PC from a web browser.</p>
+<p>The following figure illustrates the system and the ball throwing task.</p>
+<img alt="_images/finger_system.png" src="_images/finger_system.png" />
+</div>
+<div class="section" id="robot-simulator">
+<h3>1.2. Robot Simulator<a class="headerlink" href="#robot-simulator" title="Permalink to this heading">¶</a></h3>
+<p>We use a robot simulator similar to the physical single-finger robot.
+It is implemented with a game engine Unity, and simulating the dynamics of the robot and a ball.
+You can access to the robot from here:</p>
+<p><a class="reference external" href="http://akihikoy.net/p/FingerRobotWebGL/index.html">http://akihikoy.net/p/FingerRobotWebGL/index.html</a></p>
+<img alt="_images/FingerRobotWebGL.png" src="_images/FingerRobotWebGL.png" />
+<p>You can see a text box in the left bottom corner, and the Run button.  The <strong>text box describes a list of commands to operate the robot</strong>.  Click the Run button to execute the commands.  In default, it moves to the 30 degree position, waits for 2 seconds, and moves to 100 degree with 200 power.  You will see that the robot throws the ball, and after a few seconds, the ball lands on the ground.  The ball position is always displayed at the left top corner.  Once if the ball lands, “First landing position” is displayed, which denotes the flying distance of the ball.</p>
+</div>
+</div>
+<div class="section" id="programming-the-robot">
+<h2>2. Programming the Robot<a class="headerlink" href="#programming-the-robot" title="Permalink to this heading">¶</a></h2>
+<div class="section" id="id1">
+<h3>2.1. Physical Robot<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h3>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The first 3 steps are done by the instructor.</p>
+</div>
+<ol class="arabic">
+<li><p class="first">Log in to Raspberry Pi system.</p>
+</li>
+<li><p class="first">Run <span class="menuselection">Applications ‣ Programming ‣ IDLE (Python2)</span></p>
+</li>
+<li><p class="first">Run the following setup codes:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="s1">&#39;prg/ai_ctrl_1/student&#39;</span><span class="p">)</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;../sample&#39;</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">libaictrl1</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="n">dxl</span> <span class="o">=</span> <span class="n">SetupRobot</span><span class="p">()</span>
+</pre></div>
+</div>
+</li>
+</ol>
+<div class="admonition attention">
+<p class="first admonition-title">Attention</p>
+<p class="last">By running the following codes, the robot moves. Hold the base of
+the robot with attention not to injure your fingers.</p>
+</div>
+<ol class="arabic" start="4">
+<li><p class="first">Move the robot to the initial pose:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">MoveToTrg</span><span class="p">(</span><span class="n">dxl</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Let’s throw the ball:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">MoveToTrg</span><span class="p">(</span><span class="n">dxl</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">,</span> <span class="mf">0.7</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+</ol>
+<dl class="py function">
+<dt class="sig sig-object py" id="MoveToTrg">
+<code class="sig-name descname"><span class="pre">MoveToTrg</span></code><span class="sig-paren">(</span><em><span class="n"><span class="pre">dxl</span></span></em>, <em><span class="n"><span class="pre">d_angle</span></span></em>, <em><span class="n"><span class="pre">effort</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#MoveToTrg" title="Permalink to this definition">¶</a></dt>
+<dd><p>is a function to move the robot to a target position, where <code class="docutils literal notranslate"><span class="pre">dxl</span></code>
+is the variable returned by <code class="docutils literal notranslate"><span class="pre">SetupRobot()</span></code>, <code class="docutils literal notranslate"><span class="pre">d_angle</span></code> is the
+target angle <strong>in radian</strong>, and <code class="docutils literal notranslate"><span class="pre">effort</span></code> is torque to use (should be
+in [0, 1]).  If <code class="docutils literal notranslate"><span class="pre">effort</span></code> = 0, the robot will not move.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="id2">
+<h3>2.2. Robot Simulator<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h3>
+<p>Unlike the physical robot, we cannot operate the simulator robot from the
+Python program.  Instead, we use the command box on the simulator.</p>
+<p>Type following commands in the left bottom text box of the simulator:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Reset</span>
+<span class="n">MoveToTrg</span><span class="p">,</span> <span class="mi">30</span>
+<span class="n">Wait</span><span class="p">,</span> <span class="mi">2</span>
+<span class="n">MoveToTrg</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">200</span>
+</pre></div>
+</div>
+<p>The command list is described in the CSV (comma-separated values)
+format.  The first value denotes a command type.</p>
+<p>There are only three command types: <code class="docutils literal notranslate"><span class="pre">Reset</span></code> to reset the simulation
+(the ball position and the robot position are initialized), <code class="docutils literal notranslate"><span class="pre">Wait</span></code>
+to sleep before executing the next commands, and <code class="docutils literal notranslate"><span class="pre">MoveToTrg</span></code> to move
+the robot.</p>
+<p><code class="docutils literal notranslate"><span class="pre">MoveToTrg</span></code> is a command to move the robot to a target position:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">MoveToTrg</span><span class="p">,</span> <span class="n">target_angle</span><span class="p">,</span> <span class="n">effort</span>
+</pre></div>
+</div>
+<p>where <code class="docutils literal notranslate"><span class="pre">target_angle</span></code> is the target angle <strong>in degree</strong>, and <code class="docutils literal notranslate"><span class="pre">effort</span></code>
+is maximum force to operate the robot (should be in [0, 800]).
+If <code class="docutils literal notranslate"><span class="pre">effort</span></code> = 0, the robot will lose the power.</p>
+</div>
+</div>
+<div class="section" id="theoretical-overview">
+<h2>3. Theoretical Overview<a class="headerlink" href="#theoretical-overview" title="Permalink to this heading">¶</a></h2>
+<p>The motion you made in the previous step is a throwing motion, but the
+ball is not controlled.  We are interested in controlling the <strong>flying
+distance of the ball</strong> (let’s define the distance as the length
+between the robot mount and the first landing point).  The flying
+distance is decided by several factors:</p>
+<ul class="simple">
+<li>Motion of the robot.<ul>
+<li>We control the robot with target positions.  At least, two target
+positions are necessary: the initial position and the final
+position.  The motion from the initial to the final positions is
+controlled by the internal controller of the servo, but you can
+adjust it by changing the effort parameter.</li>
+</ul>
+</li>
+<li>Ball property (mass distribution, friction, etc.) that affects ball
+behavior.</li>
+<li>The elasticity of the robot.</li>
+<li>Air resistance.</li>
+</ul>
+<p>Sometimes it is not easy to analyze the dynamics of the robot and the
+ball with considering all these factors.</p>
+<p>Using <a class="reference external" href="https://en.wikipedia.org/wiki/Machine_learning">machine
+learning</a> tools is a
+solution.</p>
+<p>Especially, we take an approach of model-based reinforcement
+learning.  Refer to literature of machine learning, reinforcement
+learning, and optimization for the details.  Here we describe the
+ideas briefly:</p>
+<ul class="simple">
+<li>We use <a class="reference external" href="https://en.wikipedia.org/wiki/Regression_analysis"><strong>regression</strong></a> to model the unknown dynamics.<ul>
+<li>In this case, the dynamics is a mapping from input (an initial
+state and control parameter) to output (the flying distance).</li>
+<li>Regression is a technology to make such a mapping (estimator from
+input to output) with pairs of (input, output) data.</li>
+</ul>
+</li>
+<li>We use <a class="reference external" href="https://en.wikipedia.org/wiki/Mathematical_optimization"><strong>optimization</strong></a> to find
+a control parameter to achieve desired control.<ul>
+<li>The goal is throwing a ball to a given target distance.</li>
+</ul>
+</li>
+</ul>
+<div class="section" id="id3">
+<h3>3.1. Regression<a class="headerlink" href="#id3" title="Permalink to this heading">¶</a></h3>
+<p>When data of pairs of input <span class="math notranslate nohighlight">\(x\)</span> and output <span class="math notranslate nohighlight">\(y\)</span> is given
+(<span class="math notranslate nohighlight">\(\mathit{data} = \{x_k, y_k \mid k=1,2,...\}\)</span>),
+creating a model <span class="math notranslate nohighlight">\(F\)</span> that estimates <span class="math notranslate nohighlight">\(y\)</span> for a given
+<span class="math notranslate nohighlight">\(x\)</span> is called <strong>regression</strong>:</p>
+<div class="math notranslate nohighlight">
+\[y = F(x)\]</div>
+<p>The model <span class="math notranslate nohighlight">\(F\)</span> is <strong>trained</strong> so that the errors between
+<span class="math notranslate nohighlight">\(y_k\)</span>
+and
+<span class="math notranslate nohighlight">\(F(x_k)\)</span>
+are minimized.</p>
+<p>The design of the model <span class="math notranslate nohighlight">\(F\)</span> varies.
+A simplest model is a <strong>linear model</strong>.
+However the capability of linear models is limited; the modeling error becomes large when modeling <strong>nonlinear functions</strong>.</p>
+<p>There are nonlinear approaches of representing <span class="math notranslate nohighlight">\(F\)</span>.  The examples are
+Gaussian processes for regression (GPR) and <a class="reference external" href="https://en.wikipedia.org/wiki/Artificial_neural_network"><strong>(artificial) neural networks</strong></a>.
+In these experiments, we use a version of neural networks,
+<a class="reference external" href="https://en.wikipedia.org/wiki/Multilayer_perceptron"><strong>multi-layer perceptron (MLP)</strong></a>.</p>
+<p>MLP can represent nonlinear functions in general.
+It has some parameters, including</p>
+<ul class="simple">
+<li>The number of <strong>hidden layers and units</strong> that are designed by the users.</li>
+<li><strong>Weights</strong> of the node connections that are learned from data with the <strong>back-propagation method</strong>.</li>
+</ul>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Although MLP can learn a function where <span class="math notranslate nohighlight">\(x\)</span> and <span class="math notranslate nohighlight">\(y\)</span> are
+multidimensional vectors, we consider both <span class="math notranslate nohighlight">\(x\)</span> and <span class="math notranslate nohighlight">\(y\)</span>
+are single dimensional.</p>
+</div>
+</div>
+<div class="section" id="id4">
+<h3>3.2. Optimization<a class="headerlink" href="#id4" title="Permalink to this heading">¶</a></h3>
+<p>When an <strong>objective function</strong> <span class="math notranslate nohighlight">\(E(x)\)</span> is given, finding
+<span class="math notranslate nohighlight">\(x\)</span> that minimizes <span class="math notranslate nohighlight">\(E\)</span> is called <strong>optimization</strong>.
+<span class="math notranslate nohighlight">\(E\)</span> is a scalar function while <span class="math notranslate nohighlight">\(x\)</span> can be multi-dimensional.
+<span class="math notranslate nohighlight">\(E\)</span> is also called evaluation function, cost function, loss function, etc.
+Note that maximizing <span class="math notranslate nohighlight">\(E\)</span> is the same problem; just consider a
+negative of <span class="math notranslate nohighlight">\(E\)</span> (because <span class="math notranslate nohighlight">\(\max{E} = \min{(-E)}\)</span>).</p>
+<p>When the objective function <span class="math notranslate nohighlight">\(E\)</span> is simple, we could solve this
+problem analytically.
+However when <span class="math notranslate nohighlight">\(E\)</span> is complicated, finding analytic solution
+becomes difficult.
+In that case, we can take a <strong>numerical optimization</strong> approach.</p>
+<p>A simple example is <a class="reference external" href="https://en.wikipedia.org/wiki/Hill_climbing">hill climbing</a>.
+We start with a random (or certain) initial value
+<span class="math notranslate nohighlight">\(x_0\)</span>, and compute the gradient of <span class="math notranslate nohighlight">\(E\)</span> with respect to
+<span class="math notranslate nohighlight">\(x\)</span> around <span class="math notranslate nohighlight">\(x_0\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[\frac{dE}{dx}(x_0)\]</div>
+<p>Then modifying <span class="math notranslate nohighlight">\(x_0\)</span> to the negative direction of the gradient,
+the value of the evaluation function at the modified <span class="math notranslate nohighlight">\(x\)</span> becomes
+smaller. Iterating this updates, we will finally find <span class="math notranslate nohighlight">\(x\)</span> that
+minimizes <span class="math notranslate nohighlight">\(E\)</span>.</p>
+<p>There are other methods like hill climbing that use gradients.  For
+example <a class="reference external" href="https://en.wikipedia.org/wiki/Gradient_descent">gradient descent method</a>, and
+<a class="reference external" href="https://en.wikipedia.org/wiki/Newton%27s_method_in_optimization">Newton’s method</a>.
+The back-propagation method used to train MLP is also a gradient
+method.</p>
+<p>A drawback of the gradient method is that it is often trapped by
+<strong>local optima</strong>.  You can imagine that by assuming <span class="math notranslate nohighlight">\(E\)</span> has multiple
+peak points.  This issue sometimes happens when <span class="math notranslate nohighlight">\(E\)</span> involves learned
+models such as MLP.</p>
+<p><a class="reference external" href="https://en.wikipedia.org/wiki/CMA-ES"><strong>CMA-ES</strong></a> (Covariance Matrix Adaptation Evolution Strategy) is another approach where we do not
+have to give the gradient of <span class="math notranslate nohighlight">\(E\)</span>.  It uses multiple search points
+(population), which makes it more robust to noisy function than
+gradient methods.</p>
+</div>
+<div class="section" id="model-based-reinforcement-learning-for-throwing-motion">
+<h3>3.3. Model-based Reinforcement Learning for Throwing Motion<a class="headerlink" href="#model-based-reinforcement-learning-for-throwing-motion" title="Permalink to this heading">¶</a></h3>
+<p>Let us assume a control parameter <span class="math notranslate nohighlight">\(x\)</span> that changes the flying distance
+of the ball thrown by the robot.  For example <span class="math notranslate nohighlight">\(x\)</span> is an effort
+parameter.</p>
+<p>Let <span class="math notranslate nohighlight">\(y\)</span> denote the flying distance.</p>
+<p>Let <span class="math notranslate nohighlight">\(f\)</span> denote the dynamics, i.e. <span class="math notranslate nohighlight">\(y = f(x)\)</span>.
+Note that we give up to model <span class="math notranslate nohighlight">\(f\)</span> analytically, i.e. we do not
+know <span class="math notranslate nohighlight">\(f\)</span>.</p>
+<p>The ball throwing problem: for a given target of flying distance
+<span class="math notranslate nohighlight">\(y_\text{trg}\)</span>, find a control parameter
+<span class="math notranslate nohighlight">\(x_\text{opt}\)</span> that achieves
+<span class="math notranslate nohighlight">\(y_\text{trg}\)</span>, i.e.
+<span class="math notranslate nohighlight">\(y_\text{trg} \approx f(x_\text{opt})\)</span>.
+Note that we need to solve this problem for <strong>any</strong> <span class="math notranslate nohighlight">\(y_\text{trg}\)</span>.</p>
+<p>The solution idea is as follows:</p>
+<ol class="arabic simple">
+<li>Learning phase (Training Phase):<ol class="arabic">
+<li>Throwing the ball with random control parameters and observing the
+flying distances.  We obtain <span class="math notranslate nohighlight">\(\{x,y \mid k=1,2,...,N\}\)</span>.</li>
+<li>Training an MLP <span class="math notranslate nohighlight">\(f\)</span> with the data obtained above.</li>
+</ol>
+</li>
+<li>Testing phase (Inferring Phase):<ol class="arabic">
+<li>For a given target <span class="math notranslate nohighlight">\(y_\text{trg}\)</span>, finding a control
+parameter <span class="math notranslate nohighlight">\(x_\text{opt}\)</span> such that <span class="math notranslate nohighlight">\(y_\text{trg}
+\approx f(x_\text{opt})\)</span>.  This problem is formulated as an
+optimization problem, and solved by CMA-ES.</li>
+<li>Executing the solution <span class="math notranslate nohighlight">\(x_\text{opt}\)</span> and measuring
+the error to evaluate the performance.</li>
+</ol>
+</li>
+</ol>
+<p>The idea of finding the control parameter with optimization is as follows:
+We define the objective function as a squared error of
+<span class="math notranslate nohighlight">\(y_\text{trg}\)</span> and <span class="math notranslate nohighlight">\(f(x)\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[f_\text{error}(x) = (y_\text{trg} - f(x))^2\]</div>
+<p>We use CMA-ES to minimize this objective function with respect to <span class="math notranslate nohighlight">\(x\)</span>.
+The found <span class="math notranslate nohighlight">\(x\)</span> is <span class="math notranslate nohighlight">\(x_\text{opt}\)</span> that satisfies
+<span class="math notranslate nohighlight">\(y_\text{trg} \approx f(x_\text{opt})\)</span>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Considering that our objective function is very simple, CMA-ES may
+be an excessive choice here.  The main focus of our experiments is
+on understanding the general concept.  You will need to study more
+to understand the pros and cons of individual methods.</p>
+</div>
+</div>
+</div>
+<div class="section" id="experiments">
+<h2>4. Experiments<a class="headerlink" href="#experiments" title="Permalink to this heading">¶</a></h2>
+<p>We practice the theory mentioned above step by step.</p>
+<div class="section" id="setup-google-colaboratory">
+<h3>4.1 Setup Google Colaboratory<a class="headerlink" href="#setup-google-colaboratory" title="Permalink to this heading">¶</a></h3>
+<ol class="arabic">
+<li><p class="first">Open a web browser and access Google colaboratory (Colab, in
+short):</p>
+<p><a class="reference external" href="https://colab.research.google.com/">https://colab.research.google.com/</a></p>
+</li>
+<li><p class="first">Click <code class="docutils literal notranslate"><span class="pre">New</span> <span class="pre">notebook</span></code>, or open an existing file if you want to
+resume.</p>
+</li>
+<li><p class="first">Change the file name to <code class="docutils literal notranslate"><span class="pre">CXXXX_NAME_NAME</span></code></p>
+<ul class="simple">
+<li>Select <span class="menuselection">File ‣ Rename</span>.</li>
+<li><code class="docutils literal notranslate"><span class="pre">CXXXX</span></code> denotes your student ID.</li>
+<li><code class="docutils literal notranslate"><span class="pre">NAME_NAME</span></code> denotes your name in alphabet (e.g. Taro_Yamada).</li>
+</ul>
+</li>
+<li><p class="first">Type as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>!git clone https://github.com/naoya-chiba/ai_ctrl_1.git
+</pre></div>
+</div>
+</li>
+<li><p class="first">Press <kbd class="kbd docutils literal notranslate">Shift</kbd> + <kbd class="kbd docutils literal notranslate">Enter</kbd> to run the code block (called <strong>cell</strong>). If
+the output is like the following, the library is correctly
+downloaded from GitHub:</p>
+<div class="colab-output highlight-text notranslate"><div class="highlight"><pre><span></span>Cloning into &#39;ai_ctrl_1&#39;...
+remote: Enumerating objects: 129, done.
+remote: Total 129 (delta 0), reused 0 (delta 0), pack-reused 129
+Receiving objects: 100% (129/129), 3.88 MiB | 19.21 MiB/s, done.
+Resolving deltas: 100% (64/64), done.
+</pre></div>
+</div>
+</li>
+<li><p class="first">Type as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">sys</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;ai_ctrl_1/sample&#39;</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">libaictrl2</span> <span class="kn">import</span> <span class="o">*</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Press <kbd class="kbd docutils literal notranslate">Shift</kbd> + <kbd class="kbd docutils literal notranslate">Enter</kbd> to run the code block.</p>
+<ul class="simple">
+<li>The above code is for loading the library.  It will display
+nothing, if there is no error.</li>
+<li><strong>You can run the cell again by selecting the cell and pressing</strong> <kbd class="kbd docutils literal notranslate">Shift</kbd> + <kbd class="kbd docutils literal notranslate">Enter</kbd>.</li>
+</ul>
+</li>
+</ol>
+</div>
+<div class="section" id="regression-with-mlp">
+<h3>4.2. Regression with MLP<a class="headerlink" href="#regression-with-mlp" title="Permalink to this heading">¶</a></h3>
+<p>We train an MLP with manually generated data to see how to use MLP.
+Then we plot the learned function <code class="docutils literal notranslate"><span class="pre">f(x)</span></code> for visualizing the
+learning performance.</p>
+<p>The steps are:</p>
+<ol class="arabic">
+<li><p class="first">Generate data (<code class="docutils literal notranslate"><span class="pre">data_x</span></code>, <code class="docutils literal notranslate"><span class="pre">data_y</span></code>) manually.</p>
+<p>For example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">data_x</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">]</span>
+<span class="n">data_y</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">,</span> <span class="mf">0.7</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>Note: <code class="docutils literal notranslate"><span class="pre">data_x[i]</span></code> corresponds with <code class="docutils literal notranslate"><span class="pre">data_y[i]</span></code> (e.g. 0.2 is the
+output to 0.5).</p>
+</li>
+<li><p class="first">Train an MLP with (<code class="docutils literal notranslate"><span class="pre">data_x</span></code>, <code class="docutils literal notranslate"><span class="pre">data_y</span></code>):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">f</span> <span class="o">=</span> <span class="n">TrainMLPR</span><span class="p">(</span><span class="n">data_x</span><span class="p">,</span> <span class="n">data_y</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="py function">
+<dt class="sig sig-object py" id="TrainMLPR">
+<code class="sig-name descname"><span class="pre">TrainMLPR</span></code><span class="sig-paren">(</span><em><span class="n"><span class="pre">x</span></span></em>, <em><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#TrainMLPR" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns a function <code class="docutils literal notranslate"><span class="pre">f</span></code> which approximately achieves <span class="math notranslate nohighlight">\(y = f(x)\)</span>.</p>
+</dd></dl>
+
+</li>
+<li><p class="first">Test the function <code class="docutils literal notranslate"><span class="pre">f(x)</span></code> by feeding <code class="docutils literal notranslate"><span class="pre">x</span></code> that is not in the
+training data.  For example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">f</span><span class="p">(</span><span class="mf">0.55</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>(You can omit “print” like this.)</p>
+</li>
+<li><p class="first">Plot the function <code class="docutils literal notranslate"><span class="pre">f(x)</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">plot</span> <span class="o">=</span> <span class="n">PlotF</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">xmin</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">xmax</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">plot</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">data_x</span><span class="p">,</span> <span class="n">data_y</span><span class="p">,</span> <span class="s1">&#39;o&#39;</span><span class="p">)</span>
+<span class="n">plot</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">)</span>
+<span class="n">plot</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">)</span>
+<span class="n">plot</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<dl class="py function">
+<dt class="sig sig-object py" id="PlotF">
+<code class="sig-name descname"><span class="pre">PlotF</span></code><span class="sig-paren">(</span><em><span class="n"><span class="pre">f</span></span></em>, <em><span class="n"><span class="pre">xmin</span></span></em>, <em><span class="n"><span class="pre">xmax</span></span></em>, <em><span class="n"><span class="pre">show</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#PlotF" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns a plotter object of the function <code class="docutils literal notranslate"><span class="pre">f</span></code> in the range of
+[<code class="docutils literal notranslate"><span class="pre">xmin</span></code>, <code class="docutils literal notranslate"><span class="pre">xmax</span></code>].  With <code class="docutils literal notranslate"><span class="pre">show=True</span></code>, it shows the graph
+immediately, and with <code class="docutils literal notranslate"><span class="pre">show=False</span></code>, it does not shows the
+graph until <code class="docutils literal notranslate"><span class="pre">plot.show()</span></code> is executed.  <code class="docutils literal notranslate"><span class="pre">plot.plot</span></code> adds
+data points into the graph with a specified marker (such
+as <code class="docutils literal notranslate"><span class="pre">'o'</span></code> and <code class="docutils literal notranslate"><span class="pre">'*'</span></code>).  <code class="docutils literal notranslate"><span class="pre">plot.xlabel</span></code> and <code class="docutils literal notranslate"><span class="pre">plot.ylabel</span></code>
+add x-axis and y-axis labels.</p>
+</dd></dl>
+
+<p>You will see a graph displayed.</p>
+<img alt="_images/plot1.png" src="_images/plot1.png" />
+</li>
+</ol>
+<div class="exercise admonition">
+<p class="first admonition-title">Exercise 1</p>
+<p class="last">Change the data and other values in the above exercise.
+Try to learn a nonlinear function.</p>
+</div>
+</div>
+<div class="section" id="optimization-with-cma-es">
+<span id="exp-cma-es"></span><h3>4.3. Optimization with CMA-ES<a class="headerlink" href="#optimization-with-cma-es" title="Permalink to this heading">¶</a></h3>
+<p>We define an objective function <code class="docutils literal notranslate"><span class="pre">f_error</span></code> as a squared error of a
+target value <code class="docutils literal notranslate"><span class="pre">y_trg</span></code> and <code class="docutils literal notranslate"><span class="pre">f(x)</span></code> learned in the previous step.
+Then we minimize <code class="docutils literal notranslate"><span class="pre">f_error</span></code> with respect to x with CMA-ES.</p>
+<p>The steps are:</p>
+<ol class="arabic">
+<li><p class="first">Define the objective function <code class="docutils literal notranslate"><span class="pre">f_error</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">f_error</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+  <span class="n">y_trg</span> <span class="o">=</span> <span class="mf">0.6</span>
+  <span class="k">return</span> <span class="p">(</span><span class="n">y_trg</span> <span class="o">-</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">))</span><span class="o">**</span><span class="mi">2</span>
+</pre></div>
+</div>
+<p>This is the function definition of Python style.
+Note that in Python, the <strong>indent is important</strong>.</p>
+</li>
+<li><p class="first">Find <code class="docutils literal notranslate"><span class="pre">x_opt</span></code> that minimizes <code class="docutils literal notranslate"><span class="pre">f_error</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">x_opt</span> <span class="o">=</span> <span class="n">FMin</span><span class="p">(</span><span class="n">f_error</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">FMin</span></code> function uses CMA-ES to minimize the given function.
+0.5 is the initial value, and [0.0, 1.0] is the search range.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="FMin">
+<code class="sig-name descname"><span class="pre">FMin</span></code><span class="sig-paren">(</span><em><span class="n"><span class="pre">f</span></span></em>, <em><span class="n"><span class="pre">x_init</span></span></em>, <em><span class="n"><span class="pre">x_min</span></span></em>, <em><span class="n"><span class="pre">x_max</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#FMin" title="Permalink to this definition">¶</a></dt>
+<dd><p>finds a parameter <code class="docutils literal notranslate"><span class="pre">x</span></code> that minimizes the function <code class="docutils literal notranslate"><span class="pre">f(x)</span></code>,
+where <code class="docutils literal notranslate"><span class="pre">x_init</span></code> is the initial value of search, [<code class="docutils literal notranslate"><span class="pre">x_min</span></code>,
+<code class="docutils literal notranslate"><span class="pre">x_max</span></code>] is the search range.</p>
+</dd></dl>
+
+</li>
+<li><p class="first">Print values of <code class="docutils literal notranslate"><span class="pre">x_opt</span></code>, <code class="docutils literal notranslate"><span class="pre">f(x_opt)</span></code>, and <code class="docutils literal notranslate"><span class="pre">f_error(x_opt)</span></code> to
+see if the optimization succeeded:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Solution:&#39;</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">f</span><span class="p">(</span><span class="n">x_opt</span><span class="p">),</span> <span class="n">f_error</span><span class="p">(</span><span class="n">x_opt</span><span class="p">))</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Plot a graph of <code class="docutils literal notranslate"><span class="pre">f(x)</span></code> together with the optimized value
+(<code class="docutils literal notranslate"><span class="pre">x_opt</span></code>, <code class="docutils literal notranslate"><span class="pre">f(x_opt)</span></code>):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">plot</span> <span class="o">=</span> <span class="n">PlotF</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">xmin</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">xmax</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">plot</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">data_x</span><span class="p">,</span> <span class="n">data_y</span><span class="p">,</span> <span class="s1">&#39;o&#39;</span><span class="p">)</span>
+<span class="n">plot</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="n">x_opt</span><span class="p">],</span> <span class="p">[</span><span class="n">f</span><span class="p">(</span><span class="n">x_opt</span><span class="p">)],</span> <span class="s1">&#39;*&#39;</span><span class="p">)</span>
+<span class="n">plot</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">)</span>
+<span class="n">plot</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">)</span>
+<span class="n">plot</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>We are plotting <code class="docutils literal notranslate"><span class="pre">f(x)</span></code> with line, the training data with
+markers ‘o’, and the optimized value with marker ‘*’.</p>
+<img alt="_images/plot2.png" src="_images/plot2.png" />
+</li>
+</ol>
+<div class="exercise admonition">
+<p class="first admonition-title">Exercise 2</p>
+<p class="last">Change the target value <code class="docutils literal notranslate"><span class="pre">y_trg</span></code>.
+Use the MLP trained in the previous experiment.</p>
+</div>
+</div>
+<div class="section" id="learning-dynamics-of-throwing-robot">
+<h3>4.4. Learning Dynamics of Throwing Robot<a class="headerlink" href="#learning-dynamics-of-throwing-robot" title="Permalink to this heading">¶</a></h3>
+<p>Let’s do the above things with data obtained from the real robot.</p>
+<p>The steps are:</p>
+<ol class="arabic">
+<li><p class="first">Repeat <span class="math notranslate nohighlight">\(N\)</span> times:</p>
+<ol class="arabic">
+<li><p class="first">Throw the ball with random control parameter <span class="math notranslate nohighlight">\(x\)</span>.</p>
+<ul class="simple">
+<li>You can decide the control parameter as you like.  A way is
+defining it as the effort parameter.</li>
+</ul>
+</li>
+<li><p class="first">Observe the flying distance as <span class="math notranslate nohighlight">\(y\)</span>.</p>
+</li>
+<li><p class="first">Put <span class="math notranslate nohighlight">\(x, y\)</span> in the list <code class="docutils literal notranslate"><span class="pre">data_x</span></code>, <code class="docutils literal notranslate"><span class="pre">data_y</span></code>,
+respectively (just write them manually in the code).</p>
+<div class="admonition attention">
+<p class="first admonition-title">Attention</p>
+<p>Too large or small values of <span class="math notranslate nohighlight">\(x\)</span> and <span class="math notranslate nohighlight">\(y\)</span> will affect
+learning and optimization since sometimes these algorithms
+assume a range of the values.  In such a case, consider to
+<strong>scale the data</strong>.  A simple way of scaling is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">data_x</span> <span class="o">=</span> <span class="p">[</span><span class="mi">100</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">400</span><span class="p">,</span> <span class="mi">600</span><span class="p">]</span>
+<span class="n">data_y</span> <span class="o">=</span> <span class="p">[</span><span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="mi">50</span><span class="p">]</span>
+<span class="n">data_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data_x</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.001</span>
+<span class="n">data_y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data_y</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.01</span>
+</pre></div>
+</div>
+<p class="last">where <code class="docutils literal notranslate"><span class="pre">np.array</span></code> is NumPy array, a vector data structure
+commonly used for numerical computation with Python.</p>
+</div>
+</li>
+</ol>
+</li>
+<li><p class="first">Train MLP with <code class="docutils literal notranslate"><span class="pre">data_x</span></code>, <code class="docutils literal notranslate"><span class="pre">data_y</span></code> and obtain <code class="docutils literal notranslate"><span class="pre">f(x)</span></code>.</p>
+</li>
+<li><p class="first">Plot the function <code class="docutils literal notranslate"><span class="pre">f(x)</span></code>.</p>
+</li>
+</ol>
+<div class="exercise admonition">
+<p class="first admonition-title">Exercise 3</p>
+<p class="last">Complete the above steps.</p>
+</div>
+</div>
+<div class="section" id="control-the-robot-to-throw-the-ball-to-a-target-location">
+<h3>4.5. Control the Robot to Throw the Ball to a Target Location<a class="headerlink" href="#control-the-robot-to-throw-the-ball-to-a-target-location" title="Permalink to this heading">¶</a></h3>
+<p>Referring to the experiment of <a class="reference internal" href="#exp-cma-es"><span class="std std-ref">4.3. Optimization with CMA-ES</span></a>, make a program to throw a ball to a target location.</p>
+<p>The steps are:</p>
+<ol class="arabic simple">
+<li>Define the objective function <code class="docutils literal notranslate"><span class="pre">f_error</span></code> with <code class="docutils literal notranslate"><span class="pre">y_trg</span></code>.</li>
+<li>Minimize <code class="docutils literal notranslate"><span class="pre">f_error</span></code> to find <code class="docutils literal notranslate"><span class="pre">x_opt</span></code>.</li>
+<li>Print values of <code class="docutils literal notranslate"><span class="pre">x_opt</span></code>, <code class="docutils literal notranslate"><span class="pre">f(x_opt)</span></code>, and <code class="docutils literal notranslate"><span class="pre">f_error(x_opt)</span></code> to
+see if the optimization succeeded.</li>
+<li>Plot a graph of <code class="docutils literal notranslate"><span class="pre">f(x)</span></code> with the optimized value (<code class="docutils literal notranslate"><span class="pre">x_opt</span></code>,
+<code class="docutils literal notranslate"><span class="pre">f(x_opt)</span></code>).</li>
+<li>Execute the solution <code class="docutils literal notranslate"><span class="pre">x_opt</span></code> with the physical (or simulated) robot.</li>
+<li>Measure the flying distance and compare it with <code class="docutils literal notranslate"><span class="pre">y_trg</span></code>.</li>
+</ol>
+<div class="exercise admonition">
+<p class="first admonition-title">Exercise 4</p>
+<p class="last">Complete the above steps.
+Repeat the above several times with different <code class="docutils literal notranslate"><span class="pre">y_trg</span></code>.
+Evaluate the control accuracy.</p>
+</div>
+<div class="admonition-hint admonition">
+<p class="first admonition-title">Hint</p>
+<p>You can calculate the mean and the standard deviation with NumPy (imported as <code class="docutils literal notranslate"><span class="pre">np</span></code>) like this:</p>
+<div class="last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">result_y</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">,</span> <span class="mf">0.45</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Average:&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">result_y</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Standard deviation:&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">result_y</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="report-assignment">
+<h2>5. Report Assignment<a class="headerlink" href="#report-assignment" title="Permalink to this heading">¶</a></h2>
+<div class="section" id="procedure">
+<h3>5.1. Procedure<a class="headerlink" href="#procedure" title="Permalink to this heading">¶</a></h3>
+<p>See a separate handout for the format, contents, submission method,
+deadline, and so on.</p>
+</div>
+<div class="section" id="making-report-with-google-colab-or-jupyter-notebook">
+<h3>5.2. Making Report with Google Colab (or Jupyter Notebook)<a class="headerlink" href="#making-report-with-google-colab-or-jupyter-notebook" title="Permalink to this heading">¶</a></h3>
+<p>In Google Colab (or Jupyter Notebook), you can write documents in
+cells.  You can utilize this function to make your report.</p>
+<p>In Google Colab, click the <span class="menuselection">+Text</span> icon to add a text
+cell between existing cells.  In Jupyter Notebook, you can change the
+mode of a cell from <strong>Code</strong> to <strong>Markdown</strong> by selecting from the
+right top list.</p>
+<p>In the markdown cells, we write text with markdown style.
+Some useful styles are:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span># Section header
+## Subsection header
+Normal text.
+
+Math equation: $y = x^2$
+
+- List item 1
+- List item 2
+</pre></div>
+</div>
+<p>Press <kbd class="kbd docutils literal notranslate">Shift</kbd> + <kbd class="kbd docutils literal notranslate">Enter</kbd> to convert the plain text to the
+formatted text.  See the official document for more details:</p>
+<p><a class="reference external" href="https://colab.research.google.com/notebooks/markdown_guide.ipynb">https://colab.research.google.com/notebooks/markdown_guide.ipynb</a></p>
+<p>To generate a PDF file, In Google Colab, open
+<span class="menuselection">File ‣ Print</span> and select <span class="menuselection">Print to PDF</span>.
+In Jupyter Notebook, open <span class="menuselection">File ‣ Export Notebook
+As… ‣ PDF</span> to save the document as a PDF file.</p>
+<p>If the layout of the generated PDF file is broken, adjusting the scale
+ratio (to smaller than 100%) may help.</p>
+<p>If PDF export or download <strong>does not work</strong>, export (or download) it
+as an <strong>HTML</strong>, and convert it to a PDF by printing the HTML file with
+a web browser.</p>
+</div>
+</div>
+<div class="section" id="programs-and-cad-models">
+<h2>Programs and CAD Models<a class="headerlink" href="#programs-and-cad-models" title="Permalink to this heading">¶</a></h2>
+<p>The programs and CAD models of the robot are available on GitHub:</p>
+<p>Original: <a class="reference external" href="https://github.com/akihikoy/ai_ctrl_1">https://github.com/akihikoy/ai_ctrl_1</a></p>
+<p>Modified: <a class="reference external" href="https://github.com/naoya-chiba/ai_ctrl_1">https://github.com/naoya-chiba/ai_ctrl_1</a></p>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div id="toc" class="sidebarRow">
+<h3>Table of Contents</h3>
+<ul>
+<li><a class="reference internal" href="#">Machine Learning for Robot Control (Lab Experiment II)</a><ul>
+<li><a class="reference internal" href="#abstract">Abstract</a></li>
+<li><a class="reference internal" href="#robot-system-overview">1. Robot System Overview</a><ul>
+<li><a class="reference internal" href="#physical-robot">1.1. Physical Robot</a></li>
+<li><a class="reference internal" href="#robot-simulator">1.2. Robot Simulator</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#programming-the-robot">2. Programming the Robot</a><ul>
+<li><a class="reference internal" href="#id1">2.1. Physical Robot</a></li>
+<li><a class="reference internal" href="#id2">2.2. Robot Simulator</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#theoretical-overview">3. Theoretical Overview</a><ul>
+<li><a class="reference internal" href="#id3">3.1. Regression</a></li>
+<li><a class="reference internal" href="#id4">3.2. Optimization</a></li>
+<li><a class="reference internal" href="#model-based-reinforcement-learning-for-throwing-motion">3.3. Model-based Reinforcement Learning for Throwing Motion</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#experiments">4. Experiments</a><ul>
+<li><a class="reference internal" href="#setup-google-colaboratory">4.1 Setup Google Colaboratory</a></li>
+<li><a class="reference internal" href="#regression-with-mlp">4.2. Regression with MLP</a></li>
+<li><a class="reference internal" href="#optimization-with-cma-es">4.3. Optimization with CMA-ES</a></li>
+<li><a class="reference internal" href="#learning-dynamics-of-throwing-robot">4.4. Learning Dynamics of Throwing Robot</a></li>
+<li><a class="reference internal" href="#control-the-robot-to-throw-the-ball-to-a-target-location">4.5. Control the Robot to Throw the Ball to a Target Location</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#report-assignment">5. Report Assignment</a><ul>
+<li><a class="reference internal" href="#procedure">5.1. Procedure</a></li>
+<li><a class="reference internal" href="#making-report-with-google-colab-or-jupyter-notebook">5.2. Making Report with Google Colab (or Jupyter Notebook)</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#programs-and-cad-models">Programs and CAD Models</a></li>
+</ul>
+</li>
+</ul>
+
+
+</div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="nav-item nav-item-0"><a href="#">Machine Learning for Robot Control (Lab Experiment II)</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Machine Learning for Robot Control (Lab Experiment II)</a></li> 
+      </ul>
+    </div>
+ <script type="text/javascript">
+    $(document).ready(function() {
+        $(".toggle .header").parent().children().not(".header").toggle(200);
+
+        $(".toggle .header").click(function() {
+            $(this).parent().children().not(".header").toggle(200);
+            $(this).parent().children(".header").toggleClass("open");
+        })
+    });
+</script>
+
+  </body>
+</html>
